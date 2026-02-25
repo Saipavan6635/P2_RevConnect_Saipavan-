@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    th:replace="~{layout :: layout(layout_content=~{::section})}">
+
+<head>
+    <title>Post Details — RevConnect</title>
+</head>
+
+<body>
+    <section>
+        <div class="container main-content" style="grid-template-columns: 1fr;">
+            <div style="max-width: 800px; margin: 0 auto; width: 100%;">
+                <a th:href="@{/feed}" class="btn btn-ghost btn-sm mb-4">
+                    <i data-lucide="arrow-left" style="width: 18px;"></i>
+                    <span>Back to Feed</span>
+                </a>
+
+                <!-- Main Post -->
+                <div class="card mb-6 post">
+                    <div th:if="${post.postType.name() == 'REPOST'}"
+                        class="text-xs text-primary mb-3 flex items-center gap-1">
+                        <i data-lucide="repeat" style="width: 14px;"></i>
+                        <span>Reposted from <a th:href="@{'/profile/' + ${post.originalPost?.author?.username}}"
+                                th:text="'@' + ${post.originalPost?.author?.username}" class="font-bold"></a></span>
+                    </div>
+
+                    <div class="post-header">
+                        <div class="avatar" th:text="${post.author.username.substring(0,1).toUpperCase()}"></div>
+                        <div class="post-author">
+                            <a th:href="@{'/profile/' + ${post.author.username}}"
+                                class="author-name hover:text-primary">
+                                <span th:text="${post.author.fullName ?: post.author.username}"></span>
+                                <span th:if="${post.author.role.name() != 'PERSONAL'}" class="badge ml-2"
+                                    th:text="${post.author.role}"></span>
+                            </a>
+                            <span class="post-time"
+                                th:text="${#temporals.format(post.createdAt,'dd MMM yyyy, HH:mm')}"></span>
+                        </div>
+                        <div th:if="${post.author.id == currentUser.id}" style="margin-left: auto;" class="flex gap-2">
+                            <a th:href="@{'/posts/' + ${post.id} + '/edit'}" class="btn btn-ghost btn-sm">
+                                <i data-lucide="edit-2" style="width: 16px;"></i>
+                            </a>
+                            <form th:action="@{'/posts/' + ${post.id} + '/delete'}" method="post"
+                                onsubmit="return confirm('Delete this post?');">
+                                <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--danger);">
+                                    <i data-lucide="trash-2" style="width: 16px;"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="post-content mt-4" style="font-size: 1.25rem;" th:text="${post.content}"></div>
+
+                    <div class="flex gap-2 mt-4" th:if="${post.hashtags}">
+                        <span th:each="tag : ${#strings.arraySplit(post.hashtags,',')}" class="text-sm font-bold"
+                            style="color: var(--primary);"
+                            th:text="${#strings.trim(tag).startsWith('#') ? #strings.trim(tag) : '#' + #strings.trim(tag)}"></span>
+                    </div>
+
+                    <div th:if="${post.ctaLabel}" class="mt-4">
+                        <a th:href="${post.ctaUrl}" class="btn btn-primary btn-full" th:text="${post.ctaLabel}"
+                            target="_blank"></a>
+                    </div>
+
+                    <div class="post-actions mt-6">
+                        <form th:action="@{'/posts/' + ${post.id} + '/like'}" method="post">
+                            <button type="submit" class="action-item" th:classappend="${isLiked ? 'text-primary' : ''}">
+                                <i data-lucide="heart" th:style="${isLiked ? 'fill: var(--primary)' : ''}"></i>
+                                <span th:text="${likeCount}">0</span>
+                            </button>
+                        </form>
+                        <div class="action-item">
+                            <i data-lucide="message-circle"></i>
+                            <span th:text="${comments.size()}">0</span>
+                        </div>
+                        <form th:action="@{'/posts/' + ${post.id} + '/share'}" method="post"
+                            th:if="${post.postType.name() != 'REPOST'}" style="margin-left: auto;">
+                            <button type="submit" class="action-item">
+                                <i data-lucide="share-2" class="icon-mint"></i>
+                                <span th:text="${post.shares.size()}">0</span>
+                            </button>
+                        </form>
+                        <form th:if="${post.author.id == currentUser.id}"
+                            th:action="@{'/posts/' + ${post.id} + '/delete'}" method="post"
+                            onsubmit="return confirm('Delete this post?');" style="margin-left: 1rem;">
+                            <button type="submit" class="action-item" style="color: var(--danger);">
+                                <i data-lucide="trash-2"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="card">
+                    <h3 class="mb-4">Comments</h3>
+
+                    <form th:action="@{'/posts/' + ${post.id} + '/comment'}" method="post" class="mb-8">
+                        <div class="flex gap-3">
+                            <textarea name="content" class="form-control" rows="2" placeholder="Add a comment..."
+                                required></textarea>
+                            <button type="submit" class="btn btn-primary" style="align-self: flex-end;">
+                                <i data-lucide="send" style="width: 18px;"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div th:if="${comments.empty}" class="text-center py-8 text-muted">
+                        No comments yet.
+                    </div>
+
+                    <div th:each="comment : ${comments}" class="flex gap-3 mb-6 pb-6"
+                        style="border-bottom: 1px solid var(--border-color);">
+                        <div class="avatar" style="width: 32px; height: 32px; font-size: 0.75rem;"
+                            th:text="${comment.author.username.substring(0,1).toUpperCase()}"></div>
+                        <div style="flex: 1;">
+                            <div class="flex items-center justify-between">
+                                <a th:href="@{'/profile/' + ${comment.author.username}}" class="text-sm font-bold"
+                                    th:text="${comment.author.fullName ?: comment.author.username}"></a>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-muted"
+                                        th:text="${#temporals.format(comment.createdAt,'dd MMM, HH:mm')}"></span>
+                                    <form
+                                        th:if="${comment.author.id == currentUser.id or post.author.id == currentUser.id}"
+                                        th:action="@{'/posts/comments/' + ${comment.id} + '/delete'}" method="post"
+                                        onsubmit="return confirm('Delete this comment?');">
+                                        <input type="hidden" name="postId" th:value="${post.id}" />
+                                        <button type="submit" class="text-danger"
+                                            style="background:none; border:none; cursor:pointer;">
+                                            <i data-lucide="trash-2" style="width: 14px;"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="text-sm text-secondary mt-1" th:text="${comment.content}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+
+</html>

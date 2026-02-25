@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up — RevConnect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap"
+        rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link th:href="@{/css/styles.css}" rel="stylesheet" />
+</head>
+
+<body class="auth-page">
+    <div class="auth-card" style="max-width: 520px;">
+        <div class="text-center">
+            <div class="auth-logo">
+                <i data-lucide="sparkles" class="icon-lavender" style="width: 32px; height: 32px;"></i>
+                <span>RevConnect</span>
+            </div>
+            <p class="auth-tagline">Join our community and connect with others.</p>
+        </div>
+
+        <div class="alert alert-error" th:if="${errorMessage}">
+            <i data-lucide="alert-circle" style="width: 18px;"></i>
+            <span th:text="${errorMessage}"></span>
+        </div>
+
+        <form th:action="@{/register}" th:object="${registerDTO}" method="post">
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" th:field="*{fullName}" class="form-control" placeholder="John Doe" />
+                </div>
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label class="form-label">Username</label>
+                    <input type="text" th:field="*{username}" class="form-control" placeholder="johndoe" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" th:field="*{email}" class="form-control" placeholder="john@example.com" required />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" th:field="*{password}" class="form-control" placeholder="Minimum 6 characters"
+                    required />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Account Role</label>
+                <select th:field="*{role}" class="form-control">
+                    <option th:each="role : ${roles}" th:value="${role}" th:text="${role}"></option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full mt-4">
+                Create Account
+            </button>
+        </form>
+
+        <div style="margin: 2rem 0; display: flex; align-items: center; gap: 1rem;">
+            <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+            <span class="text-xs text-muted" style="font-weight: 600;">OR</span>
+            <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+        </div>
+
+        <p class="text-center text-sm text-secondary">
+            Already have an account?
+            <a th:href="@{/login}" class="font-bold icon-lavender" style="font-weight: 600;">Sign In</a>
+        </p>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

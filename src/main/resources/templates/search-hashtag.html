@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hashtag Search — RevConnect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link th:href="@{/css/styles.css}" rel="stylesheet" />
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container navbar-inner">
+            <a th:href="@{/feed}" class="navbar-brand">RevConnect</a>
+            <nav class="navbar-nav">
+                <a th:href="@{/feed}" class="nav-link">🏠</a>
+                <a th:href="@{/messages}" class="nav-link">💬</a>
+                <a th:href="@{/connections}" class="nav-link">👥</a>
+                <a th:href="@{/notifications}" class="nav-link">
+                    🔔<span class="badge" th:if="${unreadCount > 0}" th:text="${unreadCount}"></span>
+                </a>
+                <a th:href="@{/profile}" class="nav-link btn btn-outline btn-sm">👤 <span
+                        th:text="${currentUser.username}"></span></a>
+                <form th:action="@{/logout}" method="post" style="margin:0">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button type="submit" class="btn btn-ghost btn-sm">Sign Out</button>
+                </form>
+            </nav>
+        </div>
+    </nav>
+
+    <div class="container page-wrapper" style="max-width: 800px;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+            <a th:href="@{/feed}" class="btn btn-ghost btn-sm" style="padding: 0.5rem;">🔙</a>
+            <h1>Posts with <span style="color: var(--primary);" th:text="'#' + ${hashtag}">#hashtag</span></h1>
+        </div>
+
+        <div th:if="${posts.empty}" class="card" style="text-align: center; padding: 4rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🏷️</div>
+            <p style="color: var(--text-dim);">No posts found with this hashtag.</p>
+        </div>
+
+        <div th:each="post : ${posts}" class="post-card">
+            <div class="post-header">
+                <div class="avatar avatar-md" th:text="${post.author.username.substring(0,1)}"></div>
+                <div class="post-author-info">
+                    <a th:href="@{'/profile/' + ${post.author.username}}" class="post-author-name"
+                        th:text="${post.author.fullName ?: post.author.username}"></a>
+                    <span class="post-meta" th:text="${#temporals.format(post.createdAt,'dd MMM yyyy')}"></span>
+                </div>
+            </div>
+
+            <div class="post-content" th:text="${post.content}"></div>
+
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;" th:if="${post.hashtags}">
+                <a th:each="tag : ${#strings.arraySplit(post.hashtags,',')}"
+                    th:href="@{/posts/search(hashtag=${#strings.trim(tag).replace('#','')})}"
+                    style="color: var(--secondary); font-size: 0.85rem; font-weight: 600; text-decoration: none;"
+                    th:text="${#strings.trim(tag).startsWith('#') ? #strings.trim(tag) : '#' + #strings.trim(tag)}"></a>
+            </div>
+
+            <div class="post-footer">
+                <a th:href="@{'/posts/' + ${post.id}}" class="action-btn">
+                    ❤️ <span th:text="${post.likes.size()}">0</span>
+                    &nbsp;💬 <span th:text="${post.comments.size()}">0</span>
+                </a>
+                <form th:if="${post.author.id == currentUser.id}" th:action="@{'/posts/' + ${post.id} + '/delete'}"
+                    method="post" onsubmit="return confirm('Delete?');" style="margin-left: 0.5rem;">
+                    <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--danger);">🗑️</button>
+                </form>
+                <a th:href="@{'/posts/' + ${post.id}}" class="btn btn-outline btn-sm" style="margin-left: auto;">View
+                    Post</a>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/main.js}"></script>
+</body>
+
+</html>
