@@ -38,9 +38,24 @@ public class PostService {
         this.postMapper = postMapper;
     }
 
-    public Post createPost(User author, PostDTO dto) {
-        logger.info("Creating post for user: {}", author.getUsername());
+    public Post createPost(User author, PostDTO dto, org.springframework.web.multipart.MultipartFile image)
+            throws java.io.IOException {
+        logger.info("Service: Creating post for user: {} (Image attached: {})", author.getUsername(),
+                (image != null && !image.isEmpty()));
         Post post = postMapper.toEntity(dto, author);
+
+        if (image != null && !image.isEmpty()) {
+            String filename = java.util.UUID.randomUUID() + "_" + image.getOriginalFilename();
+            java.nio.file.Path rootPath = java.nio.file.Paths.get("uploads/post-images").toAbsolutePath();
+            if (!java.nio.file.Files.exists(rootPath)) {
+                java.nio.file.Files.createDirectories(rootPath);
+            }
+            java.nio.file.Files.copy(image.getInputStream(), rootPath.resolve(filename),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            post.setImageUrl("/uploads/post-images/" + filename);
+            logger.info("Service: Image saved successfully at: {}", post.getImageUrl());
+        }
+
         return postRepository.save(post);
     }
 
@@ -50,7 +65,11 @@ public class PostService {
             throw new AccessDeniedException("You can only edit your own posts.");
         }
         post.setContent(dto.getContent());
-        post.setHashtags(dto.getHashtags());
+        String tags = dto.getHashtags();
+        if (tags != null) {
+            tags = tags.replace(" ", ",").replaceAll(",+", ",");
+        }
+        post.setHashtags(tags);
         if (dto.getCtaLabel() != null)
             post.setCtaLabel(dto.getCtaLabel());
         if (dto.getCtaUrl() != null)

@@ -23,42 +23,66 @@
             <p class="auth-tagline">Join our community and connect with others.</p>
         </div>
 
+        <!-- Validation / server-side error messages -->
         <div class="alert alert-error" th:if="${errorMessage}">
             <i data-lucide="alert-circle" style="width: 18px;"></i>
             <span th:text="${errorMessage}"></span>
         </div>
 
+        <!-- Bean validation errors -->
+        <div class="alert alert-error" th:if="${#fields.hasErrors('*')}" th:each="err : ${#fields.allErrors()}"
+            th:text="${err}">
+        </div>
+
+        <!--
+            Register form — REQUIRES CSRF token just like login.
+            th:object="${registerDTO}" binds to the RegisterDTO added in model.
+        -->
         <form th:action="@{/register}" th:object="${registerDTO}" method="post">
+            <!-- CSRF Token — REQUIRED by Spring Security -->
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
             <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
                 <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" th:field="*{fullName}" class="form-control" placeholder="John Doe" />
+                    <label class="form-label" for="fullName">Full Name</label>
+                    <input type="text" id="fullName" th:field="*{fullName}" class="form-control"
+                        placeholder="John Doe" />
                 </div>
                 <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                    <label class="form-label">Username</label>
-                    <input type="text" th:field="*{username}" class="form-control" placeholder="johndoe" required />
+                    <label class="form-label" for="username">Username <span
+                            style="color:var(--danger);">*</span></label>
+                    <input type="text" id="username" th:field="*{username}" class="form-control" placeholder="johndoe"
+                        required minlength="3" maxlength="50" />
+                    <small class="text-muted text-xs" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"
+                        style="color: var(--danger);"></small>
                 </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Email Address</label>
-                <input type="email" th:field="*{email}" class="form-control" placeholder="john@example.com" required />
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Password</label>
-                <input type="password" th:field="*{password}" class="form-control" placeholder="Minimum 6 characters"
+                <label class="form-label" for="email">Email Address <span style="color:var(--danger);">*</span></label>
+                <input type="email" id="email" th:field="*{email}" class="form-control" placeholder="john@example.com"
                     required />
+                <small class="text-muted text-xs" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"
+                    style="color: var(--danger);"></small>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Account Role</label>
-                <select th:field="*{role}" class="form-control">
-                    <option th:each="role : ${roles}" th:value="${role}" th:text="${role}"></option>
+                <label class="form-label" for="password">Password <span style="color:var(--danger);">*</span></label>
+                <input type="password" id="password" th:field="*{password}" class="form-control"
+                    placeholder="Minimum 6 characters" required minlength="6" />
+                <small class="text-muted text-xs" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"
+                    style="color: var(--danger);"></small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="role">Account Type</label>
+                <select id="role" th:field="*{role}" class="form-control">
+                    <option th:each="r : ${roles}" th:value="${r}" th:text="${r}"></option>
                 </select>
             </div>
 
             <button type="submit" class="btn btn-primary btn-full mt-4">
+                <i data-lucide="user-plus" style="width: 18px; margin-right: 0.5rem;"></i>
                 Create Account
             </button>
         </form>

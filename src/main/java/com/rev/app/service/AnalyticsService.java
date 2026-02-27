@@ -24,17 +24,20 @@ public class AnalyticsService {
     private final CommentRepository commentRepository;
     private final FollowService followService;
     private final UserService userService;
+    private final com.rev.app.repository.ConnectionRepository connectionRepository;
 
     public AnalyticsService(PostRepository postRepository,
             LikeRepository likeRepository,
             CommentRepository commentRepository,
             FollowService followService,
-            UserService userService) {
+            UserService userService,
+            com.rev.app.repository.ConnectionRepository connectionRepository) {
         this.postRepository = postRepository;
         this.likeRepository = likeRepository;
         this.commentRepository = commentRepository;
         this.followService = followService;
         this.userService = userService;
+        this.connectionRepository = connectionRepository;
     }
 
     /**
@@ -62,11 +65,12 @@ public class AnalyticsService {
      * Returns summary metrics for the user's account.
      */
     public Map<String, Object> getAccountMetrics(Long userId) {
+        User user = userService.findById(userId);
         Map<String, Object> metrics = new HashMap<>();
         metrics.put("totalPosts", postRepository.countPublishedPostsByAuthor(userId));
         metrics.put("totalFollowers", followService.countFollowers(userId));
         metrics.put("totalFollowing", followService.countFollowing(userId));
-        metrics.put("totalConnections", userService.countFollowers(userId));
+        metrics.put("totalConnections", connectionRepository.countConnections(user));
         return metrics;
     }
 }

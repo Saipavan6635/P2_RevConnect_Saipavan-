@@ -1,74 +1,58 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(layout_content=~{::section})}">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Users — RevConnect</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
-    <link th:href="@{/css/styles.css}" rel="stylesheet" />
+    <title th:text="${title ?: 'People — RevConnect'}">People</title>
 </head>
 
 <body>
-    <nav class="navbar">
-        <div class="container navbar-inner">
-            <a th:href="@{/feed}" class="navbar-brand">RevConnect</a>
-            <nav class="navbar-nav">
-                <a th:href="@{/feed}" class="nav-link">🏠</a>
-                <a th:href="@{/messages}" class="nav-link">💬</a>
-                <a th:href="@{/connections}" class="nav-link">👥</a>
-                <a th:href="@{/notifications}" class="nav-link">
-                    🔔<span class="badge" th:if="${unreadCount > 0}" th:text="${unreadCount}"></span>
-                </a>
-                <a th:href="@{/profile}" class="nav-link btn btn-outline btn-sm">👤 <span
-                        th:text="${currentUser.username}"></span></a>
-                <form th:action="@{/logout}" method="post" style="margin:0">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="submit" class="btn btn-ghost btn-sm">Sign Out</button>
-                </form>
-            </nav>
-        </div>
-    </nav>
-
-    <div class="container page-wrapper" style="max-width: 700px;">
-        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
-            <a href="javascript:history.back()" class="btn btn-ghost btn-sm" style="padding: 0.5rem;">🔙</a>
-            <h1 style="font-size: 1.75rem;" th:text="${title}">People</h1>
-        </div>
-
-        <div th:if="${users.empty}" class="card" style="text-align: center; padding: 4rem;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">👥</div>
-            <p style="color: var(--text-dim);">No people listed here yet.</p>
-        </div>
-
-        <div th:each="user : ${users}" class="card hover-lift" style="margin-bottom: 1rem; padding: 1.25rem;">
-            <div style="display: flex; align-items: center; gap: 1.25rem;">
-                <div class="avatar avatar-md" style="overflow: hidden;">
-                    <img th:if="${user.profilePicture != null}" th:src="${user.profilePicture}"
-                        style="width: 100%; height: 100%; object-fit: cover;" alt="Avatar" />
-                    <span th:if="${user.profilePicture == null}" th:text="${user.username.substring(0,1).toUpperCase()}"
-                        style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--primary-gradient); color: white;"></span>
+    <section>
+        <div class="container main-content" style="grid-template-columns: 1fr;">
+            <div style="max-width: 700px; margin: 0 auto; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+                    <a href="javascript:history.back()" class="btn btn-ghost btn-sm" style="padding: 0.5rem;">
+                        <i data-lucide="arrow-left" style="width: 20px;"></i>
+                    </a>
+                    <h1 style="font-size: 1.75rem;" th:text="${title ?: 'People'}">People</h1>
                 </div>
-                <div style="flex: 1;">
-                    <a th:href="@{'/profile/' + ${user.username}}"
-                        style="font-weight: 600; font-size: 1.1rem; display: block;"
-                        th:text="${user.fullName ?: user.username}"></a>
-                    <div style="color: var(--text-dim); font-size: 0.85rem;" th:text="'@' + ${user.username}"></div>
-                    <div style="font-size: 0.9rem; margin-top: 0.5rem; color: var(--text-muted);" th:if="${user.bio}"
-                        th:text="${user.bio.length() > 80 ? user.bio.substring(0,80) + '...' : user.bio}"></div>
+
+                <div th:if="${users.empty}" class="card" style="text-align: center; padding: 4rem;">
+                    <i data-lucide="users"
+                        style="width: 48px; height: 48px; margin: 0 auto 1rem; color: var(--text-muted);"></i>
+                    <p class="text-secondary">No people listed here yet.</p>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;">
-                    <span th:if="${user.role.name() != 'PERSONAL'}"
-                        style="font-size: 0.7rem; background: var(--primary); padding: 2px 8px; border-radius: 4px; color: white;"
-                        th:text="${user.role}"></span>
-                    <a th:href="@{'/profile/' + ${user.username}}" class="btn btn-outline btn-sm">View Profile</a>
+
+                <div th:each="user : ${users}" class="card mb-4" style="padding: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 1.5rem;">
+                        <div class="avatar avatar-lg" style="overflow: hidden;">
+                            <img th:if="${user.profilePicture != null and !user.profilePicture.isEmpty()}"
+                                th:src="@{${user.profilePicture}}" style="width: 100%; height: 100%; object-fit: cover;"
+                                alt="Avatar" />
+                            <span th:if="${user.profilePicture == null or user.profilePicture.isEmpty()}"
+                                th:text="${user.username.substring(0,1).toUpperCase()}"
+                                style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--primary-gradient); color: white;"></span>
+                        </div>
+                        <div style="flex: 1;">
+                            <a th:href="@{'/profile/' + ${user.username}}"
+                                style="font-weight: 700; font-size: 1.25rem; display: block; color: var(--text-main);"
+                                th:text="${user.fullName ?: user.username}"></a>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;"
+                                th:text="'@' + ${user.username}"></div>
+                            <div style="font-size: 0.95rem; margin-top: 0.75rem; color: var(--text-secondary);"
+                                th:if="${user.bio}"
+                                th:text="${user.bio.length() > 100 ? user.bio.substring(0,100) + '...' : user.bio}">
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-end;">
+                            <span th:if="${user.role.name() != 'PERSONAL'}" class="badge" th:text="${user.role}"></span>
+                            <a th:href="@{'/profile/' + ${user.username}}" class="btn btn-outline btn-sm">View
+                                Profile</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <script th:src="@{/js/main.js}"></script>
+    </section>
 </body>
 
 </html>

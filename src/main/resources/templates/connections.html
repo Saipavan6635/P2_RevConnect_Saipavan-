@@ -17,7 +17,7 @@
                     </div>
                 </div>
 
-                <!-- Pending Requests -->
+                <!-- Pending Requests Received -->
                 <div th:if="${pendingReceived != null and !pendingReceived.empty}" class="mb-8">
                     <h2 class="widget-title mb-4">Pending Requests (<span th:text="${pendingReceived.size()}">0</span>)
                     </h2>
@@ -29,10 +29,14 @@
                             <div class="text-xs text-secondary" th:text="'@' + ${conn.sender.username}"></div>
                         </div>
                         <div class="flex gap-2">
+                            <!-- Accept -->
                             <form th:action="@{'/connections/' + ${conn.id} + '/accept'}" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                 <button type="submit" class="btn btn-primary btn-sm">Accept</button>
                             </form>
+                            <!-- Decline -->
                             <form th:action="@{'/connections/' + ${conn.id} + '/reject'}" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                 <button type="submit" class="btn btn-outline btn-sm">Decline</button>
                             </form>
                         </div>
@@ -61,8 +65,10 @@
                             <a th:href="@{'/profile/' + ${user.username}}" class="btn btn-ghost btn-sm">
                                 <i data-lucide="chevron-right" style="width: 18px;"></i>
                             </a>
+                            <!-- Remove connection -->
                             <form th:action="@{'/connections/remove/' + ${user.id}}" method="post"
                                 onsubmit="return confirm('Remove this connection?');">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                 <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--danger);">
                                     <i data-lucide="user-x" style="width: 18px;"></i>
                                 </button>
