@@ -8,6 +8,7 @@ import com.rev.app.entity.User;
 import com.rev.app.service.InteractionService;
 import com.rev.app.service.NotificationService;
 import com.rev.app.service.PostService;
+import com.rev.app.service.PostValidationService;
 import com.rev.app.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,14 +31,17 @@ public class PostController {
     private final UserService userService;
     private final InteractionService interactionService;
     private final NotificationService notificationService;
+    private final PostValidationService postValidationService;
 
     public PostController(PostService postService, UserService userService,
             InteractionService interactionService,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            PostValidationService postValidationService) {
         this.postService = postService;
         this.userService = userService;
         this.interactionService = interactionService;
         this.notificationService = notificationService;
+        this.postValidationService = postValidationService;
     }
 
     @GetMapping("/{id}")
@@ -85,8 +89,13 @@ public class PostController {
             @ModelAttribute PostDTO postDTO,
             RedirectAttributes redirectAttributes) {
         User currentUser = userService.findByUsername(userDetails.getUsername());
-        postService.updatePost(id, currentUser.getId(), postDTO);
-        redirectAttributes.addFlashAttribute("successMessage", "Post updated!");
+        try {
+            postValidationService.validateForCreateOrUpdate(currentUser, postDTO);
+            postService.updatePost(id, currentUser.getId(), postDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Post updated!");
+        } catch (IllegalArgumentException | com.rev.app.exception.AccessDeniedException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/posts/" + id;
     }
 

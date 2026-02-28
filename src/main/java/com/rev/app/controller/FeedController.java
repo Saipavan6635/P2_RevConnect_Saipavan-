@@ -28,15 +28,18 @@ public class FeedController {
     private final ConnectionService connectionService;
     private final FollowService followService;
     private final NotificationService notificationService;
+    private final PostValidationService postValidationService;
 
     public FeedController(PostService postService, UserService userService,
             ConnectionService connectionService, FollowService followService,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            PostValidationService postValidationService) {
         this.postService = postService;
         this.userService = userService;
         this.connectionService = connectionService;
         this.followService = followService;
         this.notificationService = notificationService;
+        this.postValidationService = postValidationService;
     }
 
     @GetMapping
@@ -93,8 +96,11 @@ public class FeedController {
                 (image != null ? image.getOriginalFilename() : "N/A"));
 
         try {
+            postValidationService.validateForCreateOrUpdate(currentUser, postDTO);
             postService.createPost(currentUser, postDTO, image);
             redirectAttributes.addFlashAttribute("successMessage", "Post created!");
+        } catch (IllegalArgumentException | com.rev.app.exception.AccessDeniedException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (java.io.IOException e) {
             logger.error("Controller: Failed to upload post image", e);
             redirectAttributes.addFlashAttribute("errorMessage", "Failed to upload image.");
