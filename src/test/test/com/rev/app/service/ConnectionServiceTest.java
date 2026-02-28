@@ -74,6 +74,17 @@ public class ConnectionServiceTest {
         connectionService.sendRequest(alice, bob);
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testSendRequest_SelfBlocked() {
+        connectionService.sendRequest(alice, alice);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testSendRequest_NonPersonalBlocked() {
+        bob.setRole(User.UserRole.BUSINESS);
+        connectionService.sendRequest(alice, bob);
+    }
+
     @Test
     public void testAcceptRequest_Success() {
         when(connectionRepository.findById(100L)).thenReturn(Optional.of(pendingConn));

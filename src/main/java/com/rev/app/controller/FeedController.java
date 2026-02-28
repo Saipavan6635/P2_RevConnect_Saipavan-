@@ -75,7 +75,7 @@ public class FeedController {
         model.addAttribute("newPost", new PostDTO());
         model.addAttribute("unreadCount", notificationService.getUnreadCount(currentUser.getId()));
         model.addAttribute("connectionCount", connectionService.getConnections(currentUser).size());
-        model.addAttribute("followerCount", followService.countFollowing(currentUser.getId()));
+        model.addAttribute("followerCount", followService.countFollowers(currentUser.getId()));
         model.addAttribute("trending", postService.getTrendingPosts(0).getContent());
         return "feed";
     }

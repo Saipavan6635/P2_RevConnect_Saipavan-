@@ -38,10 +38,12 @@ public class FollowServiceTest {
         follower = new User();
         follower.setId(1L);
         follower.setUsername("follower");
+        follower.setRole(User.UserRole.PERSONAL);
 
         followed = new User();
         followed.setId(2L);
         followed.setUsername("followed");
+        followed.setRole(User.UserRole.CREATOR);
     }
 
     @Test
@@ -60,6 +62,17 @@ public class FollowServiceTest {
     public void testFollow_AlreadyFollowing() {
         when(followRepository.existsByFollowerIdAndFollowedId(1L, 2L)).thenReturn(true);
         followService.follow(follower, followed);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testFollow_PersonalTargetBlocked() {
+        followed.setRole(User.UserRole.PERSONAL);
+        followService.follow(follower, followed);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testFollow_SelfBlocked() {
+        followService.follow(follower, follower);
     }
 
     @Test
