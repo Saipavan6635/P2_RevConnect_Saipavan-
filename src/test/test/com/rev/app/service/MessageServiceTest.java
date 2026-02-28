@@ -2,6 +2,8 @@ package com.rev.app.service;
 
 import com.rev.app.entity.Message;
 import com.rev.app.entity.User;
+import com.rev.app.exception.AccessDeniedException;
+import com.rev.app.exception.ResourceNotFoundException;
 import com.rev.app.repository.MessageRepository;
 import com.rev.app.repository.UserRepository;
 import org.junit.Before;
@@ -56,7 +58,7 @@ public class MessageServiceTest {
         verify(messageRepository, times(1)).save(any(Message.class));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = ResourceNotFoundException.class)
     public void testSendMessage_RecipientNotFound() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
         messageService.sendMessage(sender, 99L, "Hello");
@@ -72,5 +74,25 @@ public class MessageServiceTest {
     public void testMarkAsRead() {
         messageService.markAsRead(1L, 2L);
         verify(messageRepository, times(1)).markConversationAsRead(1L, 2L);
+    }
+
+    @Test
+    public void testDeleteMessage_AuthorizedRecipient() {
+        Message message = new Message(sender, recipient, "Hello");
+        message.setId(7L);
+        when(messageRepository.findById(7L)).thenReturn(Optional.of(message));
+
+        messageService.deleteMessage(7L, recipient.getId());
+
+        verify(messageRepository, times(1)).delete(message);
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    public void testDeleteMessage_UnauthorizedUser() {
+        Message message = new Message(sender, recipient, "Hello");
+        message.setId(8L);
+        when(messageRepository.findById(8L)).thenReturn(Optional.of(message));
+
+        messageService.deleteMessage(8L, 99L);
     }
 }
