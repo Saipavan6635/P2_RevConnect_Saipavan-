@@ -3,6 +3,7 @@ package com.rev.app.service;
 import com.rev.app.entity.Post;
 import com.rev.app.entity.User;
 import com.rev.app.repository.CommentRepository;
+import com.rev.app.repository.ConnectionRepository;
 import com.rev.app.repository.LikeRepository;
 import com.rev.app.repository.PostRepository;
 import org.junit.Before;
@@ -36,6 +37,9 @@ public class AnalyticsServiceTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private ConnectionRepository connectionRepository;
 
     @InjectMocks
     private AnalyticsService analyticsService;
@@ -76,13 +80,14 @@ public class AnalyticsServiceTest {
         when(postRepository.countPublishedPostsByAuthor(1L)).thenReturn(10L);
         when(followService.countFollowers(1L)).thenReturn(100L);
         when(followService.countFollowing(1L)).thenReturn(50L);
-        when(userService.countFollowers(1L)).thenReturn(100L); // totalConnections in service calls this
+        when(userService.findById(1L)).thenReturn(testUser);
+        when(connectionRepository.countConnections(testUser)).thenReturn(25L);
 
         Map<String, Object> metrics = analyticsService.getAccountMetrics(1L);
 
         assertEquals(10L, metrics.get("totalPosts"));
         assertEquals(100L, metrics.get("totalFollowers"));
         assertEquals(50L, metrics.get("totalFollowing"));
-        assertEquals(100L, metrics.get("totalConnections"));
+        assertEquals(25L, metrics.get("totalConnections"));
     }
 }

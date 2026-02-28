@@ -37,6 +37,54 @@
                     </div>
                 </div>
 
+                <!-- Engagement Insights -->
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+                    <div class="card text-center">
+                        <div class="stat-value" style="font-size: 1.6rem;" th:text="${engagement['totalInteractions']}">0</div>
+                        <div class="stat-label">Total Interactions</div>
+                    </div>
+                    <div class="card text-center">
+                        <div class="stat-value" style="font-size: 1.6rem;" th:text="${engagement['avgEngagementPerPost']}">0</div>
+                        <div class="stat-label">Avg Engagement/Post</div>
+                    </div>
+                    <div class="card text-center">
+                        <div class="stat-value" style="font-size: 1.6rem;" th:text="${engagement['engagementRate']} + '%'">0%</div>
+                        <div class="stat-label">Engagement Rate</div>
+                    </div>
+                    <div class="card text-center">
+                        <div class="stat-value" style="font-size: 1.6rem;" th:text="${engagement['estimatedReach']}">0</div>
+                        <div class="stat-label">Estimated Reach</div>
+                    </div>
+                </div>
+
+                <!-- Audience Breakdown -->
+                <div class="card mb-8">
+                    <h3 class="mb-4">Follower Demographics</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+                        <div>
+                            <h4 class="widget-title mb-3">By Role</h4>
+                            <div th:if="${demographics['followerRoleMix'] == null or demographics['followerRoleMix'].isEmpty()}" class="text-sm text-muted">No follower role data yet.</div>
+                            <div th:if="${demographics['followerRoleMix'] != null and !demographics['followerRoleMix'].isEmpty()}" class="flex flex-direction-column gap-2">
+                                <div th:each="roleEntry : ${demographics['followerRoleMix']}" class="flex justify-between">
+                                    <span class="text-sm" th:text="${roleEntry.key}">PERSONAL</span>
+                                    <span class="text-sm font-bold" th:text="${roleEntry.value}">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="widget-title mb-3">Top Locations</h4>
+                            <div th:if="${demographics['topFollowerLocations'] == null or demographics['topFollowerLocations'].isEmpty()}" class="text-sm text-muted">No location data yet.</div>
+                            <div th:if="${demographics['topFollowerLocations'] != null and !demographics['topFollowerLocations'].isEmpty()}" class="flex flex-direction-column gap-2">
+                                <div th:each="loc : ${demographics['topFollowerLocations']}" class="flex justify-between">
+                                    <span class="text-sm" th:text="${loc.key}">Location</span>
+                                    <span class="text-sm font-bold" th:text="${loc.value}">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Post Performance Table -->
                 <div class="card">
                     <h3 class="mb-4">Post Performance</h3>
