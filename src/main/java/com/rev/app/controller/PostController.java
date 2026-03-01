@@ -10,6 +10,7 @@ import com.rev.app.service.NotificationService;
 import com.rev.app.service.PostService;
 import com.rev.app.service.PostValidationService;
 import com.rev.app.service.UserService;
+import com.rev.app.service.ConnectionService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,16 +33,19 @@ public class PostController {
     private final InteractionService interactionService;
     private final NotificationService notificationService;
     private final PostValidationService postValidationService;
+    private final ConnectionService connectionService;
 
     public PostController(PostService postService, UserService userService,
             InteractionService interactionService,
             NotificationService notificationService,
-            PostValidationService postValidationService) {
+            PostValidationService postValidationService,
+            ConnectionService connectionService) {
         this.postService = postService;
         this.userService = userService;
         this.interactionService = interactionService;
         this.notificationService = notificationService;
         this.postValidationService = postValidationService;
+        this.connectionService = connectionService;
     }
 
     @GetMapping("/{id}")
@@ -50,6 +54,11 @@ public class PostController {
             Model model) {
         User currentUser = userService.findByUsername(userDetails.getUsername());
         Post post = postService.findById(id);
+        if (!canViewUserContent(currentUser, post.getAuthor())) {
+            model.addAttribute("error", "Access denied");
+            model.addAttribute("message", "This post belongs to a private profile.");
+            return "error";
+        }
         List<Comment> comments = interactionService.getComments(id);
 
         model.addAttribute("post", post);
@@ -153,10 +162,23 @@ public class PostController {
             @AuthenticationPrincipal UserDetails userDetails,
             Model model) {
         User currentUser = userService.findByUsername(userDetails.getUsername());
-        model.addAttribute("posts", postService.searchByHashtag(hashtag));
+        List<Post> visiblePosts = postService.searchPostsByHashtag(hashtag).stream()
+                .filter(post -> canViewUserContent(currentUser, post.getAuthor()))
+                .toList();
+        model.addAttribute("posts", visiblePosts);
         model.addAttribute("hashtag", hashtag);
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("unreadCount", notificationService.getUnreadCount(currentUser.getId()));
         return "search-hashtag";
+    }
+
+    private boolean canViewUserContent(User currentUser, User owner) {
+        if (currentUser.getId().equals(owner.getId())) {
+            return true;
+        }
+        if (owner.getPrivacySetting() == User.PrivacySetting.PUBLIC) {
+            return true;
+        }
+        return connectionService.areConnected(currentUser.getId(), owner.getId());
     }
 }

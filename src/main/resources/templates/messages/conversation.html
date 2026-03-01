@@ -1,118 +1,45 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-    th:replace="~{layout :: layout(layout_content=~{::section})}">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(layout_content=~{::section})}">
 
 <head>
-    <title th:text="'Chat with ' + ${contact.username} + ' — RevConnect'">Chat</title>
-    <style th:fragment="head-extra">
-        .chat-container {
-            height: calc(100vh - 280px);
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            box-shadow: var(--shadow-md);
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 1.5rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            background: var(--bg-soft);
-        }
-
-        .bubble {
-            max-width: 75%;
-            padding: 0.75rem 1rem;
-            font-size: 0.9375rem;
-            line-height: 1.4;
-            border-radius: var(--radius-md);
-            position: relative;
-        }
-
-        .bubble.sent {
-            align-self: flex-end;
-            background-color: var(--primary);
-            color: white;
-            border-bottom-right-radius: 2px;
-        }
-
-        .bubble.received {
-            align-self: flex-start;
-            background-color: var(--bg-surface);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            border-bottom-left-radius: 2px;
-        }
-
-        .msg-time {
-            font-size: 0.7rem;
-            margin-top: 0.25rem;
-            opacity: 0.7;
-            display: block;
-            text-align: right;
-        }
-
-        .chat-input-area {
-            padding: 1rem 1.5rem;
-            background: var(--bg-surface);
-            border-top: 1px solid var(--border-color);
-        }
-    </style>
+    <title th:text="'Conversation with ' + ${contact.username} + ' - RevConnect'">Conversation</title>
 </head>
 
 <body>
     <section>
         <div class="container main-content" style="grid-template-columns: 1fr;">
-            <div style="max-width: 800px; margin: 0 auto; width: 100%;">
-                <div class="flex items-center gap-4 mb-4">
-                    <a th:href="@{/messages}" class="btn btn-ghost btn-sm">
-                        <i data-lucide="arrow-left" style="width: 20px;"></i>
-                    </a>
-                    <div class="avatar" th:text="${contact.username.substring(0,1).toUpperCase()}"></div>
-                    <div>
-                        <h2 style="font-size: 1.125rem;" class="font-bold"
-                            th:text="${contact.fullName ?: contact.username}"></h2>
-                        <div class="flex items-center gap-1 text-xs text-secondary">
-                            <span
-                                style="width: 6px; height: 6px; background: var(--secondary); border-radius: 50%;"></span>
-                            Active Now
+            <div style="max-width: 860px; margin: 0 auto; width: 100%;">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <a th:href="@{/messages}" class="btn btn-outline btn-sm">Back</a>
+                        <div class="avatar" th:text="${contact.username.substring(0,1).toUpperCase()}"></div>
+                        <div>
+                            <div class="font-bold" th:text="${contact.fullName ?: contact.username}"></div>
+                            <div class="text-xs text-muted" th:text="'@' + ${contact.username}"></div>
                         </div>
                     </div>
+                    <form th:action="@{'/messages/' + ${contact.id} + '/delete'}" method="post" class="confirm-delete">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button class="btn btn-ghost btn-sm" type="submit" style="color: var(--danger);">Delete Conversation</button>
+                    </form>
                 </div>
 
-                <div class="chat-container">
-                    <div class="chat-messages" id="chatWindow">
-                        <div th:each="msg : ${messages}"
-                            th:class="${msg.sender.id == currentUser.id} ? 'bubble sent' : 'bubble received'">
+                <div class="card" style="height: 460px; display: flex; flex-direction: column;">
+                    <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; padding: 0.5rem;">
+                        <div th:each="msg : ${messages}" th:style="${msg.sender.id == currentUser.id} ? 'align-self:flex-end; max-width:74%; background:#18181b; color:#fff; padding:0.6rem 0.75rem; border-radius:10px;' : 'align-self:flex-start; max-width:74%; background:#f4f4f5; color:#18181b; padding:0.6rem 0.75rem; border-radius:10px; border:1px solid #e4e4e7;'">
                             <div th:text="${msg.content}"></div>
-                            <span class="msg-time" th:text="${#temporals.format(msg.createdAt, 'HH:mm')}"></span>
+                            <div class="text-xs" th:style="${msg.sender.id == currentUser.id} ? 'color:#d4d4d8; margin-top:0.2rem; text-align:right;' : 'color:#71717a; margin-top:0.2rem; text-align:right;'" th:text="${#temporals.format(msg.createdAt, 'HH:mm')}"></div>
                         </div>
                     </div>
 
-                    <div class="chat-input-area">
-                        <form th:action="@{'/messages/' + ${contact.id} + '/send'}" method="post" class="flex gap-2">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                            <input type="text" name="content" class="form-control" placeholder="Write a message..."
-                                required autocomplete="off" />
-                            <button type="submit" class="btn btn-primary">
-                                <i data-lucide="send" style="width: 18px;"></i>
-                            </button>
-                        </form>
-                    </div>
+                    <form th:action="@{'/messages/' + ${contact.id} + '/send'}" method="post" class="flex gap-2" style="padding-top: 0.6rem; border-top: 1px solid var(--border-light);">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <input type="text" name="content" class="form-control" placeholder="Write a message" required autocomplete="off" />
+                        <button type="submit" class="btn btn-primary">Send</button>
+                    </form>
                 </div>
             </div>
         </div>
-
-        <script>
-            const win = document.getElementById('chatWindow');
-            if (win) win.scrollTop = win.scrollHeight;
-        </script>
     </section>
 </body>
 

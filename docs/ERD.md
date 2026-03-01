@@ -25,6 +25,12 @@ erDiagram
       string password
       enum role
       enum privacy_setting
+      string category
+      string contact_info
+      string business_address
+      string business_hours
+      string external_links
+      string offerings
     }
 
     POST {
@@ -39,4 +45,3 @@ erDiagram
       bigint original_post_id FK
     }
 ```
-

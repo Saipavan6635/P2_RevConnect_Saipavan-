@@ -95,6 +95,8 @@ public class ProfileController {
         dto.setContactInfo(currentUser.getContactInfo());
         dto.setBusinessAddress(currentUser.getBusinessAddress());
         dto.setBusinessHours(currentUser.getBusinessHours());
+        dto.setExternalLinks(currentUser.getExternalLinks());
+        dto.setOfferings(currentUser.getOfferings());
         dto.setPrivacySetting(currentUser.getPrivacySetting().name());
         model.addAttribute("profileDTO", dto);
         model.addAttribute("currentUser", currentUser);

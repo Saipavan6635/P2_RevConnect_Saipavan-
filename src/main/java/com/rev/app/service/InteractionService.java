@@ -71,8 +71,12 @@ public class InteractionService {
     public void deleteComment(Long commentId, Long currentUserId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found: " + commentId));
-        if (!comment.getAuthor().getId().equals(currentUserId)) {
-            throw new AccessDeniedException("You can only delete your own comments.");
+
+        boolean isCommentAuthor = comment.getAuthor().getId().equals(currentUserId);
+        boolean isPostAuthor = comment.getPost().getAuthor().getId().equals(currentUserId);
+
+        if (!isCommentAuthor && !isPostAuthor) {
+            throw new AccessDeniedException("You are not authorized to delete this comment.");
         }
         commentRepository.delete(comment);
     }

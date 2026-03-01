@@ -31,6 +31,11 @@ public interface PostRepository extends JpaRepository<Post, Long>,
                         "ORDER BY p.createdAt DESC")
         List<PostSummaryProjection> findByHashtag(@Param("hashtag") String hashtag);
 
+        @Query("SELECT p FROM Post p JOIN FETCH p.author WHERE p.published = true AND " +
+                        "LOWER(p.hashtags) LIKE LOWER(CONCAT('%', :hashtag, '%')) " +
+                        "ORDER BY p.createdAt DESC")
+        List<Post> findPostsByHashtag(@Param("hashtag") String hashtag);
+
         // Trending posts (most likes in last 24h)
         @Query("SELECT p FROM Post p JOIN FETCH p.author WHERE p.published = true " +
                         "ORDER BY SIZE(p.likes) DESC, p.createdAt DESC")

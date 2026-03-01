@@ -18,6 +18,7 @@ RevConnect is a full-stack Spring Boot social media web application supporting p
 
 - Authentication (register/login/logout) with role-based accounts
 - Profile management (privacy, bio, location, website, avatar)
+- Creator/business profile extensions (category, contact info, business details, external links, offerings)
 - Post management (create/edit/delete, hashtags, image upload, repost/share)
 - Social interactions (likes, comments, shares)
 - Network features (personal-to-personal connections, follows)
@@ -42,7 +43,7 @@ RevConnect is a full-stack Spring Boot social media web application supporting p
 mvn clean spring-boot:run
 ```
 
-3. Open `http://localhost:8080`.
+3. Open `http://localhost:8082`.
 
 ## Testing
 
@@ -58,4 +59,6 @@ Service-level tests are available under `src/test/test/com/rev/app/service`.
 
 - Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - ERD: [docs/ERD.md](docs/ERD.md)
-
+- Requirements Traceability: [docs/REQUIREMENTS_TRACEABILITY.md](docs/REQUIREMENTS_TRACEABILITY.md)
+- Testing Artifacts: [docs/TESTING.md](docs/TESTING.md)
+- SQL Migrations: [docs/SQL_MIGRATIONS.md](docs/SQL_MIGRATIONS.md)

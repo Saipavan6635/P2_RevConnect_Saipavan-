@@ -105,6 +105,10 @@ public class UserService {
             user.setBusinessAddress(dto.getBusinessAddress());
         if (dto.getBusinessHours() != null)
             user.setBusinessHours(dto.getBusinessHours());
+        if (dto.getExternalLinks() != null)
+            user.setExternalLinks(dto.getExternalLinks());
+        if (dto.getOfferings() != null)
+            user.setOfferings(dto.getOfferings());
         if (dto.getPrivacySetting() != null) {
             user.setPrivacySetting(User.PrivacySetting.valueOf(dto.getPrivacySetting()));
         }

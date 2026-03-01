@@ -21,8 +21,7 @@ public class Message {
     @JoinColumn(name = "recipient_id", nullable = false)
     private User recipient;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(length = 4000, nullable = false)
     private String content;
 
     @Column(name = "is_read")

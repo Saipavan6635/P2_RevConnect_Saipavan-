@@ -10,6 +10,8 @@ public class ProfileUpdateDTO {
     private String contactInfo;
     private String businessAddress;
     private String businessHours;
+    private String externalLinks;
+    private String offerings;
     private String privacySetting; // "PUBLIC" or "PRIVATE"
 
     // Getters and Setters
@@ -83,5 +85,21 @@ public class ProfileUpdateDTO {
 
     public void setPrivacySetting(String privacySetting) {
         this.privacySetting = privacySetting;
+    }
+
+    public String getExternalLinks() {
+        return externalLinks;
+    }
+
+    public void setExternalLinks(String externalLinks) {
+        this.externalLinks = externalLinks;
+    }
+
+    public String getOfferings() {
+        return offerings;
+    }
+
+    public void setOfferings(String offerings) {
+        this.offerings = offerings;
     }
 }

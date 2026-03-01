@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(layout_content=~{::section})}">
+
+<head>
+    <title>RevConnect - Social Platform</title>
+</head>
+
+<body>
+    <section class="landing-shell">
+        <div class="container">
+            <div class="landing-hero" style="grid-template-columns: 1fr;">
+                <div class="landing-hero-main">
+                    <span class="landing-kicker">Social Platform</span>
+                    <h1 class="landing-title">Connect, share, and grow your network.</h1>
+                    <p class="landing-description">
+                        RevConnect brings personal users, creators, and businesses together with profiles, posts,
+                        connections, follows, messaging, and analytics in one application.
+                    </p>
+                    <div class="landing-actions">
+                        <a th:href="@{/register}" class="btn btn-primary">Create Account</a>
+                        <a th:href="@{/login}" class="btn btn-outline">Sign In</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="landing-grid" style="margin-top: 1rem;">
+                <article class="landing-feature">
+                    <h3>Personalized Feed</h3>
+                    <p>See posts from your network and followed accounts.</p>
+                </article>
+                <article class="landing-feature">
+                    <h3>Network Tools</h3>
+                    <p>Manage connections, followers, and role-based interactions.</p>
+                </article>
+                <article class="landing-feature">
+                    <h3>Analytics</h3>
+                    <p>Track engagement and activity for your profile and posts.</p>
+                </article>
+            </div>
+
+            <div class="landing-cta">
+                <div>
+                    <h3 style="margin-bottom: 0.3rem; color: var(--text-main);">Get started with RevConnect</h3>
+                    <p style="color: var(--landing-side-text); font-size: 0.9rem;">Create your account and start publishing today.</p>
+                </div>
+                <a th:href="@{/register}" class="btn btn-outline" style="background: var(--bg-surface); color: var(--text-main);">Get Started</a>
+            </div>
+        </div>
+
+        <footer class="landing-footer">
+            <div class="container">
+                <div class="landing-footer-row">
+                    <div>&copy; 2026 RevConnect</div>
+                    <div style="display: flex; gap: 1rem;">
+                        <a href="#" class="text-muted">About</a>
+                        <a href="#" class="text-muted">Privacy</a>
+                        <a href="#" class="text-muted">Terms</a>
+                        <a href="#" class="text-muted">Support</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </section>
+</body>
+
+</html>
