@@ -7,6 +7,8 @@ import com.rev.app.service.UserService;
 import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -25,8 +27,12 @@ public class AuthController {
     }
 
     @GetMapping("/")
-    public String home() {
-        return "redirect:/feed";
+    public String home(Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken)) {
+            return "redirect:/feed";
+        }
+        return "index";
     }
 
     @GetMapping("/login")
@@ -65,6 +71,11 @@ public class AuthController {
         } catch (UserAlreadyExistsException ex) {
             logger.warn("AuthController: Registration failed - user already exists: {}", ex.getMessage());
             model.addAttribute("errorMessage", ex.getMessage());
+            model.addAttribute("roles", User.UserRole.values());
+            return "auth/register";
+        } catch (Exception ex) {
+            logger.error("AuthController: Unexpected error during registration", ex);
+            model.addAttribute("errorMessage", "An unexpected error occurred: " + ex.getMessage());
             model.addAttribute("roles", User.UserRole.values());
             return "auth/register";
         }

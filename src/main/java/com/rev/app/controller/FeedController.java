@@ -28,15 +28,18 @@ public class FeedController {
     private final ConnectionService connectionService;
     private final FollowService followService;
     private final NotificationService notificationService;
+    private final PostValidationService postValidationService;
 
     public FeedController(PostService postService, UserService userService,
             ConnectionService connectionService, FollowService followService,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            PostValidationService postValidationService) {
         this.postService = postService;
         this.userService = userService;
         this.connectionService = connectionService;
         this.followService = followService;
         this.notificationService = notificationService;
+        this.postValidationService = postValidationService;
     }
 
     @GetMapping
@@ -44,6 +47,7 @@ public class FeedController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(required = false) String hashtag,
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String userRole,
             Model model) {
         User currentUser = userService.findByUsername(userDetails.getUsername());
 
@@ -54,15 +58,25 @@ public class FeedController {
         feedUserIds.addAll(followService.getFollowedIds(currentUser.getId()));
 
         List<Post> posts;
-        if (hashtag != null && !hashtag.isBlank()) {
-            posts = postService.filterPosts(null, hashtag);
-        } else if (type != null && !type.isBlank()) {
+        Post.PostType postType = null;
+        User.UserRole authorRole = null;
+        if (type != null && !type.isBlank()) {
             try {
-                Post.PostType postType = Post.PostType.valueOf(type.toUpperCase());
-                posts = postService.filterPosts(postType, null);
-            } catch (IllegalArgumentException e) {
-                posts = postService.getFeed(feedUserIds, page, 10).getContent();
+                postType = Post.PostType.valueOf(type.toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                logger.debug("Invalid post type filter: {}", type);
             }
+        }
+        if (userRole != null && !userRole.isBlank()) {
+            try {
+                authorRole = User.UserRole.valueOf(userRole.toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                logger.debug("Invalid user role filter: {}", userRole);
+            }
+        }
+
+        if ((hashtag != null && !hashtag.isBlank()) || postType != null || authorRole != null) {
+            posts = postService.filterFeedPosts(feedUserIds, postType, hashtag, authorRole);
         } else {
             Page<Post> feedPage = postService.getFeed(feedUserIds, page, 10);
             posts = feedPage.getContent();
@@ -75,8 +89,12 @@ public class FeedController {
         model.addAttribute("newPost", new PostDTO());
         model.addAttribute("unreadCount", notificationService.getUnreadCount(currentUser.getId()));
         model.addAttribute("connectionCount", connectionService.getConnections(currentUser).size());
-        model.addAttribute("followerCount", followService.countFollowing(currentUser.getId()));
+        model.addAttribute("followerCount", followService.countFollowers(currentUser.getId()));
         model.addAttribute("trending", postService.getTrendingPosts(0).getContent());
+        model.addAttribute("trendingHashtags", postService.getTrendingHashtags(12));
+        model.addAttribute("selectedType", type);
+        model.addAttribute("selectedUserRole", userRole);
+        model.addAttribute("selectedHashtag", hashtag);
         return "feed";
     }
 
@@ -93,8 +111,11 @@ public class FeedController {
                 (image != null ? image.getOriginalFilename() : "N/A"));
 
         try {
+            postValidationService.validateForCreateOrUpdate(currentUser, postDTO);
             postService.createPost(currentUser, postDTO, image);
             redirectAttributes.addFlashAttribute("successMessage", "Post created!");
+        } catch (IllegalArgumentException | com.rev.app.exception.AccessDeniedException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (java.io.IOException e) {
             logger.error("Controller: Failed to upload post image", e);
             redirectAttributes.addFlashAttribute("errorMessage", "Failed to upload image.");

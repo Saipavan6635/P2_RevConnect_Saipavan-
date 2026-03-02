@@ -1,0 +1,28 @@
+-- RevConnect V2 migration
+-- Adds profile extension columns for creator/business accounts.
+
+DECLARE
+    v_count NUMBER := 0;
+BEGIN
+    SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME = 'USERS' AND COLUMN_NAME = 'EXTERNAL_LINKS';
+
+    IF v_count = 0 THEN
+        EXECUTE IMMEDIATE 'ALTER TABLE USERS ADD (EXTERNAL_LINKS VARCHAR2(2000))';
+    END IF;
+END;
+/
+
+DECLARE
+    v_count NUMBER := 0;
+BEGIN
+    SELECT COUNT(*) INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME = 'USERS' AND COLUMN_NAME = 'OFFERINGS';
+
+    IF v_count = 0 THEN
+        EXECUTE IMMEDIATE 'ALTER TABLE USERS ADD (OFFERINGS VARCHAR2(2000))';
+    END IF;
+END;
+/

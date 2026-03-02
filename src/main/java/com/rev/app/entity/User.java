@@ -38,7 +38,7 @@ public class User {
     @Column(name = "full_name")
     private String fullName;
 
-    @Lob
+    @Column(length = 4000)
     private String bio;
 
     @Column(name = "profile_picture")
@@ -72,6 +72,14 @@ public class User {
 
     @Column(name = "business_hours")
     private String businessHours;
+
+    // Creator/Business: comma/newline separated external links
+    @Column(name = "external_links", length = 2000)
+    private String externalLinks;
+
+    // Creator/Business: services/products list
+    @Column(name = "offerings", length = 2000)
+    private String offerings;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -249,6 +257,22 @@ public class User {
 
     public void setBusinessHours(String businessHours) {
         this.businessHours = businessHours;
+    }
+
+    public String getExternalLinks() {
+        return externalLinks;
+    }
+
+    public void setExternalLinks(String externalLinks) {
+        this.externalLinks = externalLinks;
+    }
+
+    public String getOfferings() {
+        return offerings;
+    }
+
+    public void setOfferings(String offerings) {
+        this.offerings = offerings;
     }
 
     public LocalDateTime getCreatedAt() {

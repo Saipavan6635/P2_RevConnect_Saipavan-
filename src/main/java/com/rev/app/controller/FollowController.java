@@ -4,6 +4,7 @@ import com.rev.app.entity.User;
 import com.rev.app.service.FollowService;
 import com.rev.app.service.NotificationService;
 import com.rev.app.service.UserService;
+import com.rev.app.service.ConnectionService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -18,12 +19,15 @@ public class FollowController {
     private final FollowService followService;
     private final UserService userService;
     private final NotificationService notificationService;
+    private final ConnectionService connectionService;
 
     public FollowController(FollowService followService, UserService userService,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            ConnectionService connectionService) {
         this.followService = followService;
         this.userService = userService;
         this.notificationService = notificationService;
+        this.connectionService = connectionService;
     }
 
     @PostMapping("/{userId}")
@@ -58,6 +62,11 @@ public class FollowController {
             Model model) {
         User profileUser = userService.findByUsername(username);
         User currentUser = userService.findByUsername(userDetails.getUsername());
+        if (!canViewUserLists(currentUser, profileUser)) {
+            model.addAttribute("error", "Access denied");
+            model.addAttribute("message", "This profile is private.");
+            return "error";
+        }
         model.addAttribute("users", followService.getFollowers(profileUser.getId()));
         model.addAttribute("title", "Followers of " + profileUser.getUsername());
         model.addAttribute("currentUser", currentUser);
@@ -71,10 +80,25 @@ public class FollowController {
             Model model) {
         User profileUser = userService.findByUsername(username);
         User currentUser = userService.findByUsername(userDetails.getUsername());
+        if (!canViewUserLists(currentUser, profileUser)) {
+            model.addAttribute("error", "Access denied");
+            model.addAttribute("message", "This profile is private.");
+            return "error";
+        }
         model.addAttribute("users", followService.getFollowing(profileUser.getId()));
         model.addAttribute("title", "Following by " + profileUser.getUsername());
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("unreadCount", notificationService.getUnreadCount(currentUser.getId()));
         return "user-list";
+    }
+
+    private boolean canViewUserLists(User currentUser, User profileUser) {
+        if (currentUser.getId().equals(profileUser.getId())) {
+            return true;
+        }
+        if (profileUser.getPrivacySetting() == User.PrivacySetting.PUBLIC) {
+            return true;
+        }
+        return connectionService.areConnected(currentUser.getId(), profileUser.getId());
     }
 }

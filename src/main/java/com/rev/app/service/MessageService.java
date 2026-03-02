@@ -2,6 +2,8 @@ package com.rev.app.service;
 
 import com.rev.app.entity.Message;
 import com.rev.app.entity.User;
+import com.rev.app.exception.AccessDeniedException;
+import com.rev.app.exception.ResourceNotFoundException;
 import com.rev.app.repository.MessageRepository;
 import com.rev.app.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -23,7 +25,7 @@ public class MessageService {
 
     public Message sendMessage(User sender, Long recipientId, String content) {
         User recipient = userRepository.findById(recipientId)
-                .orElseThrow(() -> new RuntimeException("Recipient not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Recipient not found"));
         Message message = new Message(sender, recipient, content);
         return messageRepository.save(message);
     }
@@ -50,9 +52,9 @@ public class MessageService {
 
     public void deleteMessage(Long messageId, Long requesterId) {
         Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new RuntimeException("Message not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
         if (!message.getSender().getId().equals(requesterId) && !message.getRecipient().getId().equals(requesterId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new AccessDeniedException("Unauthorized to delete this message.");
         }
         messageRepository.delete(message);
     }

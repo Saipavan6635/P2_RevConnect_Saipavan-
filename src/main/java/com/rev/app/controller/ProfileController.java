@@ -57,6 +57,10 @@ public class ProfileController {
         boolean isConnected = connectionService.areConnected(currentUser.getId(), profileUser.getId());
         boolean isFollowing = followService.isFollowing(currentUser.getId(), profileUser.getId());
         boolean hasPendingRequest = connectionService.hasPendingRequest(currentUser.getId(), profileUser.getId());
+        boolean canConnect = !isOwnProfile
+                && currentUser.getRole() == User.UserRole.PERSONAL
+                && profileUser.getRole() == User.UserRole.PERSONAL;
+        boolean canFollow = !isOwnProfile && profileUser.getRole() != User.UserRole.PERSONAL;
 
         // Private profile visibility
         boolean canViewPosts = isOwnProfile || profileUser.getPrivacySetting() == User.PrivacySetting.PUBLIC
@@ -68,6 +72,8 @@ public class ProfileController {
         model.addAttribute("isConnected", isConnected);
         model.addAttribute("isFollowing", isFollowing);
         model.addAttribute("hasPendingRequest", hasPendingRequest);
+        model.addAttribute("canConnect", canConnect);
+        model.addAttribute("canFollow", canFollow);
         model.addAttribute("canViewPosts", canViewPosts);
         model.addAttribute("posts", canViewPosts ? postService.getUserPosts(profileUser.getId()) : null);
         model.addAttribute("followerCount", followService.countFollowers(profileUser.getId()));
@@ -89,6 +95,8 @@ public class ProfileController {
         dto.setContactInfo(currentUser.getContactInfo());
         dto.setBusinessAddress(currentUser.getBusinessAddress());
         dto.setBusinessHours(currentUser.getBusinessHours());
+        dto.setExternalLinks(currentUser.getExternalLinks());
+        dto.setOfferings(currentUser.getOfferings());
         dto.setPrivacySetting(currentUser.getPrivacySetting().name());
         model.addAttribute("profileDTO", dto);
         model.addAttribute("currentUser", currentUser);

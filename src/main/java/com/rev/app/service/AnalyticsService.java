@@ -11,9 +11,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -72,5 +74,70 @@ public class AnalyticsService {
         metrics.put("totalFollowing", followService.countFollowing(userId));
         metrics.put("totalConnections", connectionRepository.countConnections(user));
         return metrics;
+    }
+
+    /**
+     * Returns aggregate engagement and lightweight reach estimation.
+     */
+    public Map<String, Object> getEngagementMetrics(Long userId) {
+        List<Post> posts = postRepository.findByAuthorIdAndPublishedTrueOrderByPinnedDescCreatedAtDesc(userId);
+        long totalLikes = 0L;
+        long totalComments = 0L;
+        long totalShares = 0L;
+
+        for (Post post : posts) {
+            totalLikes += likeRepository.countByPostId(post.getId());
+            totalComments += commentRepository.countByPostId(post.getId());
+            totalShares += post.getShares() != null ? post.getShares().size() : 0;
+        }
+
+        long totalInteractions = totalLikes + totalComments + totalShares;
+        long totalPosts = posts.size();
+        long followerCount = followService.countFollowers(userId);
+        User user = userService.findById(userId);
+        long connectionCount = connectionRepository.countConnections(user);
+
+        double avgEngagementPerPost = totalPosts == 0 ? 0.0 : (double) totalInteractions / totalPosts;
+        double engagementRate = followerCount == 0 ? 0.0 : ((double) totalInteractions / followerCount) * 100.0;
+
+        Map<String, Object> metrics = new HashMap<>();
+        metrics.put("totalLikes", totalLikes);
+        metrics.put("totalComments", totalComments);
+        metrics.put("totalShares", totalShares);
+        metrics.put("totalInteractions", totalInteractions);
+        metrics.put("avgEngagementPerPost", round2(avgEngagementPerPost));
+        metrics.put("engagementRate", round2(engagementRate));
+        metrics.put("estimatedReach", followerCount + connectionCount);
+        return metrics;
+    }
+
+    /**
+     * Returns followers grouped by role and top follower locations.
+     */
+    public Map<String, Object> getFollowerDemographics(Long userId) {
+        List<User> followers = followService.getFollowers(userId);
+
+        Map<String, Long> byRole = followers.stream()
+                .collect(Collectors.groupingBy(u -> u.getRole().name(), Collectors.counting()));
+
+        Map<String, Long> byLocation = followers.stream()
+                .map(User::getLocation)
+                .filter(location -> location != null && !location.isBlank())
+                .collect(Collectors.groupingBy(location -> location, Collectors.counting()));
+
+        List<Map.Entry<String, Long>> topLocations = byLocation.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .limit(5)
+                .toList();
+
+        Map<String, Object> demographics = new HashMap<>();
+        demographics.put("followerRoleMix", byRole);
+        demographics.put("topFollowerLocations", topLocations);
+        demographics.put("followersWithLocation", byLocation.values().stream().mapToLong(Long::longValue).sum());
+        return demographics;
+    }
+
+    private double round2(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 }

@@ -105,6 +105,13 @@ public class NotificationService {
         notificationRepository.deleteById(notificationId);
     }
 
+    public void deletePostNotifications(Long postId) {
+        notificationRepository.deleteByReferenceIdAndTypes(postId, List.of(
+                Notification.NotificationType.POST_LIKED,
+                Notification.NotificationType.POST_COMMENTED,
+                Notification.NotificationType.POST_SHARED));
+    }
+
     public void clearAllNotifications(Long userId) {
         notificationRepository.deleteByRecipientId(userId);
     }

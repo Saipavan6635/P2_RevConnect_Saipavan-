@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -83,6 +85,9 @@ public class PostService {
         if (!post.getAuthor().getId().equals(currentUserId)) {
             throw new AccessDeniedException("You can only delete your own posts.");
         }
+        // Clean up logical references in notifications
+        notificationService.deletePostNotifications(postId);
+
         postRepository.delete(post);
         logger.info("Post {} deleted by user {}", postId, currentUserId);
     }
@@ -125,19 +130,60 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
+    public List<Post> searchPostsByHashtag(String hashtag) {
+        return postRepository.findPostsByHashtag(hashtag);
+    }
+
+    @Transactional(readOnly = true)
     public Page<Post> getTrendingPosts(int page) {
         return postRepository.findTrendingPosts(PageRequest.of(page, 10));
     }
 
     // Filter feed using Specifications
     @Transactional(readOnly = true)
-    public List<Post> filterPosts(Post.PostType type, String hashtag) {
+    public List<Post> filterPosts(Post.PostType type, String hashtag, User.UserRole userRole) {
         Specification<Post> spec = PostSpecification.isPublished();
         if (type != null)
             spec = spec.and(PostSpecification.hasPostType(type));
         if (hashtag != null && !hashtag.isBlank())
             spec = spec.and(PostSpecification.containsHashtag(hashtag));
+        if (userRole != null)
+            spec = spec.and(PostSpecification.byAuthorRole(userRole));
         return postRepository.findAll(Specification.where(spec));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Post> filterFeedPosts(List<Long> userIds, Post.PostType type, String hashtag, User.UserRole userRole) {
+        Specification<Post> spec = PostSpecification.isPublished().and(PostSpecification.byAuthorIds(userIds));
+        if (type != null)
+            spec = spec.and(PostSpecification.hasPostType(type));
+        if (hashtag != null && !hashtag.isBlank())
+            spec = spec.and(PostSpecification.containsHashtag(hashtag));
+        if (userRole != null)
+            spec = spec.and(PostSpecification.byAuthorRole(userRole));
+        return postRepository.findAll(Specification.where(spec));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Post> filterPosts(Post.PostType type, String hashtag) {
+        return filterPosts(type, hashtag, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> getTrendingHashtags(int limit) {
+        return postRepository.findTrendingPosts(PageRequest.of(0, 30)).getContent().stream()
+                .map(Post::getHashtags)
+                .filter(tags -> tags != null && !tags.isBlank())
+                .flatMap(tags -> java.util.Arrays.stream(tags.split(",")))
+                .map(String::trim)
+                .filter(tag -> !tag.isBlank())
+                .map(tag -> tag.startsWith("#") ? tag.toLowerCase() : "#" + tag.toLowerCase())
+                .collect(Collectors.groupingBy(tag -> tag, Collectors.counting()))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(limit)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
     }
 
     // Scheduled: auto-publish posts when scheduledAt has passed
