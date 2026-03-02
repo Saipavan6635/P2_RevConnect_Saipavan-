@@ -1,13 +1,13 @@
-package com.rev.app.service;
+package com.rev.app.security;
 
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
 
-public class PostValidationServiceTest {
+public class JwtTokenUtilTest {
 
     @Test
     public void classShouldBeLoadable() {
-        assertNotNull(PostValidationService.class);
+        assertNotNull(JwtTokenUtil.class);
     }
 }

@@ -4,10 +4,10 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
 
-public class PostValidationServiceTest {
+public class InteractionServiceTest {
 
     @Test
     public void classShouldBeLoadable() {
-        assertNotNull(PostValidationService.class);
+        assertNotNull(InteractionService.class);
     }
 }

@@ -1,13 +1,13 @@
-package com.rev.app.service;
+package com.rev.app.mapper;
 
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
 
-public class PostValidationServiceTest {
+public class UserMapperTest {
 
     @Test
     public void classShouldBeLoadable() {
-        assertNotNull(PostValidationService.class);
+        assertNotNull(UserMapper.class);
     }
 }

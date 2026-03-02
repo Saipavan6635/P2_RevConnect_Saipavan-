@@ -1,13 +1,13 @@
-package com.rev.app.service;
+package com.rev.app.controller;
 
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
 
-public class PostValidationServiceTest {
+public class AuthControllerTest {
 
     @Test
     public void classShouldBeLoadable() {
-        assertNotNull(PostValidationService.class);
+        assertNotNull(AuthController.class);
     }
 }
